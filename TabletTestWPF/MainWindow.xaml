@@ -1,0 +1,46 @@
+﻿<Window x:Class="TabletTestWPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TabletTestWPF"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="800" Width="1200">
+    <DockPanel Name="MainPanel">
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open"/>
+                <MenuItem Header="_Close"/>
+                <MenuItem Header="_Save" Click="MenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="Server">
+            </MenuItem>
+        </Menu>
+        <Grid>
+            <local:SimpleStylus x:Name="simpleStylus" Panel.ZIndex="0"/>
+            <Grid Name="ParentDrawerGrid" Panel.ZIndex="1" Width="200" Height="400" HorizontalAlignment="Right" VerticalAlignment="Top" >
+                <Button Name="DrawerOpenButton" Visibility="Hidden" Click="DrawerOpenButton_Click" Background="White" BorderBrush="White" Padding="0" HorizontalAlignment="Right" TextBlock.FontSize="30"  Width="40" Height="40" VerticalAlignment="Top">
+                    <TextBlock Margin="0,-17,0,0" FontSize="50"><Run Text="&lt;"/></TextBlock>
+                </Button>
+                <Grid Width="200" Height="500" HorizontalAlignment="Right" Name="DrawerGrid">
+                    <Button Click="DrawerButton_Click" Background="White" BorderBrush="White" Padding="0" HorizontalAlignment="Left" TextBlock.FontSize="30"  Width="40" Height="40" VerticalAlignment="Top">
+                        <TextBlock Margin="0,-17,0,0" Text=">" FontSize="50"/>
+                    </Button>
+                    <StackPanel Width="100" HorizontalAlignment="Left">
+                        <Label Content="Pensize" HorizontalAlignment="Right"></Label>
+                        <Label Content="Highlighter" HorizontalAlignment="Right"></Label>
+                        <Label Content="Color" HorizontalAlignment="Right"></Label>
+                        <Label Content="Pensize" HorizontalAlignment="Right"></Label>
+                    </StackPanel>
+                    <StackPanel Width="100" HorizontalAlignment="Right">
+                        <Slider Minimum="1" Maximum="100" ValueChanged="PenSizeSlider" Height="25"/>
+                        <CheckBox  Height="25" Click="HighlighterCheckBox_Click"/>
+                        <xctk:ColorPicker SelectedColorChanged="ColorPicker_SelectedColorChanged" Height="25"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Grid>
+
+    </DockPanel>
+</Window>
