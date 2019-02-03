@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -37,7 +38,8 @@ namespace TabletTestWPF
         {
             using (var fs = File.OpenWrite("save_" + DateTime.Now.ToString("dd.MM.yyyy_hh.mm.ss") + ".drawing"))
             {
-                SimpleStylus.InkPresent.Strokes.Save(fs);
+                SimpleStylus.InkPresenter.Strokes.Save(fs);
+                          
             }
         }
 
@@ -61,25 +63,25 @@ namespace TabletTestWPF
         {
             if (SimpleStylus == null)
                 return;
-            var dr = SimpleStylus.PenRenderer.Clone();
-            dr.DrawingAttributes.Width = e.NewValue;
-            dr.DrawingAttributes.Height = e.NewValue;
-            SimpleStylus.PenRenderer = dr;
+            var dr = SimpleStylus.CurrentAttributes.Clone();
+            dr.Width = e.NewValue;
+            dr.Height = e.NewValue;
+            SimpleStylus.CurrentAttributes = dr;
         }
         private void OpacitySlider(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (SimpleStylus == null)
                 return;
-            var dr = SimpleStylus.PenRenderer.Clone();
-            SimpleStylus.PenRenderer = dr;
+            var dr = SimpleStylus.CurrentAttributes.Clone();
+            SimpleStylus.CurrentAttributes = dr;
         }
         private void ColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
         {
             if (SimpleStylus == null || !e.NewValue.HasValue)
                 return;
-            var dr = SimpleStylus.PenRenderer.Clone();
-            dr.DrawingAttributes.Color = e.NewValue.Value;
-            SimpleStylus.PenRenderer = dr;
+            var dr = SimpleStylus.CurrentAttributes.Clone();
+            dr.Color = e.NewValue.Value;
+            SimpleStylus.CurrentAttributes = dr;
         }
 
         private void HighlighterCheckBox_Click(object sender, RoutedEventArgs e)
@@ -87,9 +89,9 @@ namespace TabletTestWPF
             if (SimpleStylus == null)
                 return;
 
-            var dr = SimpleStylus.PenRenderer.Clone();
-            dr.DrawingAttributes.IsHighlighter = ((CheckBox)sender).IsChecked.Value;
-            SimpleStylus.PenRenderer = dr;
+            var dr = SimpleStylus.CurrentAttributes.Clone();
+            dr.IsHighlighter = ((CheckBox)sender).IsChecked.Value;
+            SimpleStylus.CurrentAttributes = dr;
         }
 
     }
