@@ -20,16 +20,16 @@ namespace DrawingTabletServer
 
         public async void AddStroke(byte[] strokes)
         {
-            ChangeStroke(strokes, ActionType.Add);
+            ChangeStroke(strokes, new byte[0], ActionType.Add);
             //Program.DrawingManager.StoreNewStroke(strokes);
             //await Clients.Others.SendAsync("NewDrawing", strokes);
         }
-        public async void ChangeStroke(byte[] strokes, ActionType actionType)
+        public async void ChangeStroke(byte[] strokes, byte[] changed, ActionType actionType)
         {
-            Program.DrawingManager.ChangeStrokes(strokes, actionType);
-            await Clients.Others.SendAsync("ChangedStroke", strokes, actionType);
+            Program.DrawingManager.ChangeStrokes(strokes, changed, actionType);
+            await Clients.Others.SendAsync("ChangedStroke", strokes, changed, actionType);
         }
 
-        public List<(ActionType, byte[])> GetStrokeCollection() => Program.DrawingManager.GetStrokeCollection();
+        public List<(ActionType, byte[], byte[])> GetStrokeCollection() => Program.DrawingManager.GetStrokeCollection();
     }
 }

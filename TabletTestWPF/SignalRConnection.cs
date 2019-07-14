@@ -48,10 +48,10 @@ namespace TabletTestWPF
             //            MainWindow.SimpleStylus.ChangeFromServer(new StrokeCollection(ms)));
             //});
 
-            Connection.On("ChangedStroke", (Action<byte[], ActionType>)((strokes, actionType) =>
-            {
-                ChangeStrokeFromServer(strokes, actionType);
-            }));
+            Connection.On("ChangedStroke", (Action<byte[], byte[], ActionType>)((strokes, changed, actionType) =>
+             {
+                 ChangeStrokeFromServer(strokes, changed, actionType);
+             }));
 
             //var allDrawings = await Connection.InvokeAsync<List<byte[]>>("GetAllDrawing");
             //lock (MainWindow.LockObject)
@@ -59,49 +59,66 @@ namespace TabletTestWPF
             //        using (var ms = new MemoryStream(drawing))
             //            SimpleStylus.Dispatcher.Invoke(() =>
             //        MainWindow.SimpleStylus.InkPresenter.Strokes.Add(new StrokeCollection(ms)));
-            var allDrawingsAndDeletes = await Connection.InvokeAsync<List<(ActionType, byte[])>>("GetStrokeCollection");
+            var allDrawingsAndDeletes = await Connection.InvokeAsync<List<(ActionType, byte[], byte[])>>("GetStrokeCollection");
             lock (MainWindow.LockObject)
                 foreach (var drawing in allDrawingsAndDeletes)
                 {
-                    switch (drawing.Item1)
-                    {
-                        case ActionType.Add:
-                            using (var ms = new MemoryStream(drawing.Item2))
-                                SimpleStylus.Dispatcher.Invoke(() =>
-                            MainWindow.SimpleStylus.InkPresenter.Strokes.Add(new StrokeCollection(ms)));
-                            break;
-                        //case ActionType.Change:
-                        //    using (var ms = new MemoryStream(drawing.Item2))
-                        //        SimpleStylus.Dispatcher.Invoke(() =>
-                        //    MainWindow.SimpleStylus.InkPresenter.Strokes.Remove(new StrokeCollection(ms)));
-                        //    break;
-                        case ActionType.Remove:
-                            using (var ms = new MemoryStream(drawing.Item2))
-                                SimpleStylus.Dispatcher.Invoke(() =>
-                                {
-                                    var sc = new StrokeCollection(ms);
-                                    MainWindow.SimpleStylus.InkPresenter.Strokes.Remove(sc);
-                                });
-                            //using (var ms = new MemoryStream(drawing.Item2))
-                            //    SimpleStylus.Dispatcher.Invoke(() =>
-                            //MainWindow.SimpleStylus.InkPresenter.Strokes.Add(new StrokeCollection(ms)));
-                            break;
-                        default: break;
-                    }
+                    ChangeStrokeFromServer(drawing.Item2, drawing.Item3, drawing.Item1);
+                    //switch (drawing.Item1)
+                    //{
+                    //    case ActionType.Add:
+                    //        using (var ms = new MemoryStream(drawing.Item2))
+                    //            SimpleStylus.Dispatcher.Invoke(() =>
+                    //        MainWindow.SimpleStylus.InkPresenter.Strokes.Add(new StrokeCollection(ms)));
+                    //        break;
+                    //case ActionType.Change:
+                    //    using (var ms = new MemoryStream(drawing.Item2))
+                    //        SimpleStylus.Dispatcher.Invoke(() =>
+                    //    MainWindow.SimpleStylus.InkPresenter.Strokes.Remove(new StrokeCollection(ms)));
+                    //    break;
+                    //    case ActionType.Remove:
+                    //        using (var ms = new MemoryStream(drawing.Item2))
+                    //            SimpleStylus.Dispatcher.Invoke(() =>
+                    //            {
+                    //                var sc = new StrokeCollection(ms);
+                    //                for (int i = 0; i < MainWindow.SimpleStylus.InkPresenter.Strokes.Count; i++)
+                    //                {
+                    //                    var stroke = MainWindow.SimpleStylus.InkPresenter.Strokes[i];
+                    //                    var o = sc.FirstOrDefault(x => x.Equals(stroke));
+                    //                    if (o == null)
+                    //                        continue;
+                    //                    MainWindow.SimpleStylus.InkPresenter.Strokes.RemoveAt(i);
+                    //                }
+                    //                //.Remove(sc);
+                    //            });
+                    //        //using (var ms = new MemoryStream(drawing.Item2))
+                    //        //    SimpleStylus.Dispatcher.Invoke(() =>
+                    //        //MainWindow.SimpleStylus.InkPresenter.Strokes.Add(new StrokeCollection(ms)));
+                    //        break;
+                    //    default: break;
+                    //}
                 }
 
 
             //GetStrokeCollection
         }
 
-        private static void ChangeStrokeFromServer(byte[] strokes, ActionType actionType)
+        private static void ChangeStrokeFromServer(byte[] strokes, byte[] changed, ActionType actionType)
         {
 
             lock (MainWindow.LockObject)
                 using (var ms = new MemoryStream(strokes))
-
+                using (var ms2 = new MemoryStream(changed))
+                {
                     SimpleStylus.Dispatcher.Invoke(() =>
-                    MainWindow.SimpleStylus.ChangeFromServer(new StrokeCollection(ms), actionType));
+                    {
+                        if (ms2.Length > 0)
+                            MainViewModel.SimpleStylus.ChangeFromServer(new StrokeCollection(ms), new StrokeCollection(ms2), actionType);
+                        else
+                            MainViewModel.SimpleStylus.ChangeFromServer(new StrokeCollection(ms), null, actionType);
+                    });
+
+                }
             //switch (actionType)
             //    {
             //        //case ActionType.Change:

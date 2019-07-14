@@ -5,6 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Reference Include="Microsoft.Ink">
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Common Files\microsoft shared\Ink\Microsoft.Ink.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\PresentationCore.dll</HintPath>
     </Reference>

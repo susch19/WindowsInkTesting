@@ -7,38 +7,53 @@
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
         Title="MainWindow" Height="800" Width="1200">
+
     <DockPanel Name="MainPanel">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="_Open"/>
-                <MenuItem Header="_Close"/>
+                <MenuItem Header="_Close" Command="{Binding OpenClicked}" CommandParameter="{Binding}"/>
                 <MenuItem Header="_Save" Click="MenuItem_Click"/>
             </MenuItem>
             <MenuItem Header="Server">
             </MenuItem>
         </Menu>
         <Grid>
-            <local:SimpleStylus x:Name="simpleStylus" Panel.ZIndex="0"/>
-            <Grid Name="ParentDrawerGrid" Panel.ZIndex="1" Width="200" Height="400" HorizontalAlignment="Right" VerticalAlignment="Top" >
-                <Button Name="DrawerOpenButton" Visibility="Hidden" Click="DrawerOpenButton_Click" Background="White" BorderBrush="White" Padding="0" HorizontalAlignment="Right" TextBlock.FontSize="30"  Width="40" Height="40" VerticalAlignment="Top">
-                    <TextBlock Margin="0,-17,0,0" FontSize="50"><Run Text="&lt;"/></TextBlock>
-                </Button>
-                <Grid Width="200" Height="500" HorizontalAlignment="Right" Name="DrawerGrid">
-                    <Button Click="DrawerButton_Click" Background="White" BorderBrush="White" Padding="0" HorizontalAlignment="Left" TextBlock.FontSize="30"  Width="40" Height="40" VerticalAlignment="Top">
-                        <TextBlock Margin="0,-17,0,0" Text=">" FontSize="50"/>
-                    </Button>
-                    <StackPanel Width="100" HorizontalAlignment="Left">
-                        <Label Content="Pensize" HorizontalAlignment="Right"></Label>
-                        <Label Content="Highlighter" HorizontalAlignment="Right"></Label>
-                        <Label Content="Color" HorizontalAlignment="Right"></Label>
-                        <Label Content="Pensize" HorizontalAlignment="Right"></Label>
-                    </StackPanel>
-                    <StackPanel Width="100" HorizontalAlignment="Right">
-                        <Slider Minimum="1" Maximum="100" ValueChanged="PenSizeSlider" Height="25"/>
-                        <CheckBox  Height="25" Click="HighlighterCheckBox_Click"/>
-                        <xctk:ColorPicker SelectedColorChanged="ColorPicker_SelectedColorChanged" Height="25"/>
-                    </StackPanel>
-                </Grid>
+            <ScrollViewer x:Name="DrawerScrollViewer" 
+                          VerticalScrollBarVisibility="Auto"  
+                          HorizontalScrollBarVisibility="Auto"
+                          ScrollChanged="DrawerScrollViewer_ScrollChanged"
+                          >
+                <local:SimpleStylus 
+                    x:Name="simpleStylus"
+                    Panel.ZIndex="0"
+                    MinWidth="{Binding ElementName=DrawerScrollViewer, Path=ActualWidth}"
+                    MinHeight="{Binding ElementName=DrawerScrollViewer, Path=ActualHeight}"
+                    Width="{Binding DrawingWidth, Mode=TwoWay}"
+                    Height="{Binding DrawingHeight, Mode=TwoWay}"/>
+            </ScrollViewer>
+            <Grid Name="ParentDrawerGrid" Panel.ZIndex="1" Width="200" Height="400" HorizontalAlignment="Left" VerticalAlignment="Top" >
+                <Expander VerticalAlignment="Top" HorizontalAlignment="Left">
+                    <Grid Width="200" HorizontalAlignment="Right" Name="DrawerGrid">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition MinWidth="100" Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Label Grid.Column="0" Grid.Row="0" Content="Pensize" ></Label>
+                        <Label Grid.Column="0" Grid.Row="1" Content="Highlighter"></Label>
+                        <Label Grid.Column="0" Grid.Row="2" Content="Color" ></Label>
+                        <Slider Grid.Column="1" Grid.Row="0" Minimum="1" Maximum="100" Value="{Binding Path=PenSize, Mode=TwoWay}" />
+                        <CheckBox Grid.Column="1" Grid.Row="1"  IsChecked="{Binding HighlighterActive}"/>
+                        <xctk:ColorPicker Grid.Column="1" Grid.Row="2" SelectedColor="{Binding SelectedColor}" />
+
+                    </Grid>
+                </Expander>
             </Grid>
         </Grid>
 

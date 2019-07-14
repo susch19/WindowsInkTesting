@@ -11,12 +11,12 @@ namespace DrawingTabletServer
     {
         private List<StrokeAndTime> Strokes;
         //public StrokeCollection StrokeCollection { get; private set; }
-        public List<(ActionType, byte[])> StrokeHistory;
+        public List<(ActionType, byte[], byte[])> StrokeHistory;
         public DrawingManager()
         {
             Strokes = new List<StrokeAndTime>();
             //StrokeCollection = new StrokeCollection();
-            StrokeHistory = new List<(ActionType, byte[])>();
+            StrokeHistory = new List<(ActionType, byte[], byte[])>();
         }
 
         internal List<byte[]> GetLatest(DateTime time) => Strokes.Where(x => x.DateTime > time).Select(x => x.Stroke).ToList();
@@ -29,14 +29,14 @@ namespace DrawingTabletServer
             StoreNewStroke(drawings);
         }
 
-        internal void StoreNewStroke(byte[] stroke) => StrokeHistory.Add((ActionType.Add, stroke));
+        internal void StoreNewStroke(byte[] stroke) => StrokeHistory.Add((ActionType.Add, stroke, new byte[0]));
 
-        internal void ChangeStrokes(byte[] strokes, ActionType actionType)
+        internal void ChangeStrokes(byte[] strokes, byte[] changed, ActionType actionType)
         {
-            StrokeHistory.Add((actionType, strokes));//using (var ms = new MemoryStream(strokes))//using (var eraseMS = new MemoryStream(erase))//{//    var strokesToReplace = new StrokeCollection(ms);//    var eraseResult = new StrokeCollection(eraseMS);//    if (eraseResult.Count > 0)//        StrokeCollection.Replace(strokesToReplace, eraseResult);//    else//        StrokeCollection.Remove(strokesToReplace);//}
+            StrokeHistory.Add((actionType, strokes, changed));//using (var ms = new MemoryStream(strokes))//using (var eraseMS = new MemoryStream(erase))//{//    var strokesToReplace = new StrokeCollection(ms);//    var eraseResult = new StrokeCollection(eraseMS);//    if (eraseResult.Count > 0)//        StrokeCollection.Replace(strokesToReplace, eraseResult);//    else//        StrokeCollection.Remove(strokesToReplace);//}
         }
 
-        internal List<(ActionType, byte[])> GetStrokeCollection() =>
+        internal List<(ActionType, byte[], byte[])> GetStrokeCollection() =>
             //using (var ms = new MemoryStream())
             //{
             //    StrokeCollection.Save(ms);

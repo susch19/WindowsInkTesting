@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -59,11 +60,43 @@ namespace TabletTestWPF
             StylusLeave += (s, e) => InvertLogic(e.Inverted, e);
             StylusMove += (s, e) => { if (hitter.IsValid) hitter.AddPoints(e.GetStylusPoints(this)); };
             StylusInRange += (s, e) => InvertLogic(e.Inverted, e);
+            StylusInAirMove += SimpleStylus_StylusInAirMove;
             InkPresenter.Strokes.StrokesChanged += Strokes_StrokesChanged;
             Content = InkPresenter;
         }
 
-        private void Hitter_StrokeHit(object sender, StrokeHitEventArgs e)
+        private void SimpleStylus_StylusInAirMove(object sender, StylusEventArgs e)
+        {
+            if (Parent is ScrollViewer sv)
+            {
+                var pos = e.StylusDevice.GetPosition(sv);
+                if (pos.X + 40 > sv.ActualWidth)
+                    if (sv.HorizontalOffset + sv.ActualWidth < ActualWidth)
+                        sv.ScrollToHorizontalOffset(sv.HorizontalOffset + 10);
+                    else
+                        Width = ActualWidth + 10;
+
+                if (pos.Y + 40 > sv.ActualHeight)
+                    if (sv.VerticalOffset + sv.ActualHeight < ActualHeight)
+                        sv.ScrollToVerticalOffset(sv.VerticalOffset + 10);
+                    else
+                        Height = ActualHeight + 10;
+
+                if (pos.X - 40 < 0)
+                    if (sv.HorizontalOffset - 20 < 0)
+                        sv.ScrollToLeftEnd();
+                    else
+                        sv.ScrollToHorizontalOffset(sv.HorizontalOffset - 10);
+
+                if (pos.Y - 40 < 0)
+                    if (sv.VerticalOffset - 20 < 0)
+                        sv.ScrollToTop();
+                    else
+                        sv.ScrollToVerticalOffset(sv.VerticalOffset - 10);
+            }
+        }
+
+        private async void Hitter_StrokeHit(object sender, StrokeHitEventArgs e)
         {
             if (!invertedPenMode)
                 return;
@@ -77,31 +110,68 @@ namespace TabletTestWPF
                 InkPresenter.Strokes.Replace(strokesToReplace, eraseResult);
             else
                 InkPresenter.Strokes.Remove(strokesToReplace);
-            //new Task(async () =>
-            //{
-            //    using (var stroke = new MemoryStream())
-            //    using (var erase = new MemoryStream())
-            //    {
-            //        strokesToReplace.Save(stroke);
-            //        eraseResult.Save(erase);
-            //        await SignalRConnection.Connection.InvokeAsync("ChangeStrokeCollection", stroke.ToArray(), erase.ToArray());
-            //    }
-            //}).Start();
+            var t = new Task(async () =>
+            {
+                using (var stroke = new MemoryStream())
+                using (var erase = new MemoryStream())
+                {
+                    strokesToReplace.Save(stroke);
+                    eraseResult.Save(erase);
+                    if (SignalRConnection.Connection.State == HubConnectionState.Connected)
+                        await SignalRConnection.Connection.InvokeAsync("ChangeStroke", stroke.ToArray(), erase.ToArray(), ActionType.Change);
+                }
+            });
+            t.Start();
+            await t;
 
         }
 
-        public void ChangeFromServer(StrokeCollection strokeCollection, ActionType actionType)
+        public void ChangeFromServer(StrokeCollection strokeCollection, StrokeCollection changed, ActionType actionType)
         {
             InkPresenter.Strokes.StrokesChanged -= Strokes_StrokesChanged;
             switch (actionType)
             {
-                //case ActionType.Change:
-                //    using (var ms = new MemoryStream(drawing.Item2))
-                //        SimpleStylus.Dispatcher.Invoke(() =>
-                //    MainWindow.SimpleStylus.InkPresenter.Strokes.Remove(new StrokeCollection(ms)));
-                //    break;
+                case ActionType.Change:
+                    var toChange = new List<int>();
+                    for (int i = 0; i < MainViewModel.SimpleStylus.InkPresenter.Strokes.Count; i++)
+                    {
+                        var stroke = MainViewModel.SimpleStylus.InkPresenter.Strokes[i];
+                        var o = strokeCollection.FirstOrDefault(x => x.StylusPoints.SequenceEqual(stroke.StylusPoints));
+                        if (o == null)
+                            continue;
+                        toChange.Add(i);
+                    }
+                    if (toChange.Count > 0)
+                    {
+                        var toChangeCol = new StrokeCollection();
+                        foreach (var i in toChange)
+                        {
+                            toChangeCol.Add(MainViewModel.SimpleStylus.InkPresenter.Strokes[i]);
+                        }
+                        MainViewModel.SimpleStylus.InkPresenter.Strokes.Replace(toChangeCol, changed);
+                    }
+                    break;
                 case ActionType.Remove:
-                    InkPresenter.Strokes.Remove(strokeCollection);
+                    //var sc = new StrokeCollection(ms);
+                    var toRemove = new List<int>();
+                    for (int i = 0; i < MainViewModel.SimpleStylus.InkPresenter.Strokes.Count; i++)
+                    {
+                        var stroke = MainViewModel.SimpleStylus.InkPresenter.Strokes[i];
+                        var o = strokeCollection.FirstOrDefault(x => x.StylusPoints.SequenceEqual(stroke.StylusPoints));
+                        if (o == null)
+                            continue;
+                        toRemove.Add(i);
+                    }
+                    if (toRemove.Count > 0)
+                    {
+                        var toRemoveCol = new StrokeCollection();
+                        foreach (var i in toRemove)
+                        {
+                            toRemoveCol.Add(MainViewModel.SimpleStylus.InkPresenter.Strokes[i]);
+                        }
+                        MainViewModel.SimpleStylus.InkPresenter.Strokes.Remove(toRemoveCol);
+                    }
+                    //.Remove(sc);
                     break;
                 case ActionType.Add:
                     InkPresenter.Strokes.Add(strokeCollection);
@@ -119,13 +189,14 @@ namespace TabletTestWPF
                 {
                     if (e.Removed.Count > 0)
                     {
-                        e.Removed.Save(stroke);
-                        await SignalRConnection.Connection.InvokeAsync("ChangeStroke", stroke.ToArray(), ActionType.Remove);
+                        //e.Removed.Save(stroke);
+                        //await SignalRConnection.Connection.InvokeAsync("ChangeStroke", stroke.ToArray(), ActionType.Remove);
                     }
                     else
                     {
                         e.Added.Save(stroke);
-                        await SignalRConnection.Connection.InvokeAsync("AddStroke", stroke.ToArray());
+                        if (SignalRConnection.Connection.State == HubConnectionState.Connected)
+                            await SignalRConnection.Connection.InvokeAsync("AddStroke", stroke.ToArray());
                     }
                 }
             });

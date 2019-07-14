@@ -23,76 +23,54 @@ namespace TabletTestWPF
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static SimpleStylus SimpleStylus;
+
         public static object LockObject { get; internal set; }
+
+        private MainViewModel mainViewModel;
         public MainWindow()
         {
             var con = new SignalRConnection();
             LockObject = new object();
             InitializeComponent();
 
-            SimpleStylus = simpleStylus;
+            mainViewModel = new MainViewModel(simpleStylus);
+            this.DataContext = mainViewModel;
         }
 
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
-            using (var fs = File.OpenWrite("save_" + DateTime.Now.ToString("dd.MM.yyyy_hh.mm.ss") + ".drawing"))
-            {
-                SimpleStylus.InkPresenter.Strokes.Save(fs);
-                          
-            }
+            //using (var fs = File.OpenWrite("save_" + DateTime.Now.ToString("dd.MM.yyyy_hh.mm.ss") + ".drawing"))
+            //{
+            //    SimpleStylus.InkPresenter.Strokes.Save(fs);
+            //}
         }
 
-        private void DrawerButton_Click(object sender, RoutedEventArgs e)
-        {
-            DrawerGrid.Visibility = Visibility.Hidden;
-            DrawerOpenButton.Visibility = Visibility.Visible;
-            ParentDrawerGrid.Width = 40;
-            ParentDrawerGrid.Height = 40;
-        }
-
-        private void DrawerOpenButton_Click(object sender, RoutedEventArgs e)
-        {
-            DrawerGrid.Visibility = Visibility.Visible;
-            DrawerOpenButton.Visibility = Visibility.Hidden;
-            ParentDrawerGrid.Width = 200;
-            ParentDrawerGrid.Height = Height;
-        }
-
-        private void PenSizeSlider(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (SimpleStylus == null)
-                return;
-            var dr = SimpleStylus.CurrentAttributes.Clone();
-            dr.Width = e.NewValue;
-            dr.Height = e.NewValue;
-            SimpleStylus.CurrentAttributes = dr;
-        }
         private void OpacitySlider(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (SimpleStylus == null)
-                return;
-            var dr = SimpleStylus.CurrentAttributes.Clone();
-            SimpleStylus.CurrentAttributes = dr;
+            //if (SimpleStylus == null)
+            //    return;
+            //var dr = SimpleStylus.CurrentAttributes.Clone();
+            //SimpleStylus.CurrentAttributes = dr;
         }
-        private void ColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
+
+        private void DrawerScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
-            if (SimpleStylus == null || !e.NewValue.HasValue)
-                return;
-            var dr = SimpleStylus.CurrentAttributes.Clone();
-            dr.Color = e.NewValue.Value;
-            SimpleStylus.CurrentAttributes = dr;
+            var scroll = ((ScrollViewer)sender);
+            if (e.ExtentHeightChange > 0)
+            {
+                if (e.ExtentHeightChange + scroll.VerticalOffset >= scroll.ScrollableHeight)
+                    scroll.ScrollToVerticalOffset(scroll.ScrollableHeight);
+                else
+                    scroll.ScrollToVerticalOffset(scroll.VerticalOffset + e.ExtentHeightChange);
+            }
+            if (e.ExtentWidthChange > 0)
+            {
+                if (e.ExtentWidthChange + scroll.HorizontalOffset >= scroll.ScrollableWidth)
+                    scroll.ScrollToHorizontalOffset(scroll.ScrollableWidth);
+                else
+                    scroll.ScrollToHorizontalOffset(scroll.HorizontalOffset + e.ExtentWidthChange);
+
+            }
         }
-
-        private void HighlighterCheckBox_Click(object sender, RoutedEventArgs e)
-        {
-            if (SimpleStylus == null)
-                return;
-
-            var dr = SimpleStylus.CurrentAttributes.Clone();
-            dr.IsHighlighter = ((CheckBox)sender).IsChecked.Value;
-            SimpleStylus.CurrentAttributes = dr;
-        }
-
     }
 }
