@@ -78,7 +78,20 @@ namespace TabletTestWPF
         public MainViewModel(SimpleStylus simpleStylus)
         {
             SimpleStylus = simpleStylus;
+            simpleStylus.StrokeAdded += SimpleStylus_StrokeAdded;
             selectedColor = simpleStylus.CurrentAttributes.Color;
+        }
+
+        private void SimpleStylus_StrokeAdded(object sender, System.Windows.Ink.StrokeCollection e)
+        {
+            var maxX = e.Max(x => x.StylusPoints.Max(y => y.X)); 
+            var maxY = e.Max(x => x.StylusPoints.Max(y => y.Y));
+
+            if (DrawingHeigth < maxY)
+                DrawingHeigth = maxY;
+
+            if (DrawingWidth < maxX)
+                DrawingWidth = maxX;
         }
 
         private void PenSizeSlider(double newSize)

@@ -34,6 +34,8 @@ namespace TabletTestWPF
 
         private DynamicRenderer renderer => /*invertedPenMode ? eraserRenderer :*/ penRenderer;
 
+        public event EventHandler<StrokeCollection> StrokeAdded;
+
         private DynamicRenderer penRenderer;
         private readonly object lockObject = new object();
         private StylusPointCollection stylusPoints = null;
@@ -175,6 +177,7 @@ namespace TabletTestWPF
                     break;
                 case ActionType.Add:
                     InkPresenter.Strokes.Add(strokeCollection);
+                    StrokeAdded?.Invoke(this, strokeCollection);
                     break;
                 default: break;
             }
