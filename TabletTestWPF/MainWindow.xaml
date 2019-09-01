@@ -26,6 +26,8 @@
                           >
                 <local:SimpleStylus 
                     x:Name="simpleStylus"
+                    Stylus.IsFlicksEnabled="False"
+                    Stylus.IsPressAndHoldEnabled="False"
                     Panel.ZIndex="0"
                     MinWidth="{Binding ElementName=DrawerScrollViewer, Path=ActualWidth}"
                     MinHeight="{Binding ElementName=DrawerScrollViewer, Path=ActualHeight}"

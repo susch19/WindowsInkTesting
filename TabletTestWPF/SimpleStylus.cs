@@ -54,7 +54,7 @@ namespace TabletTestWPF
 
             StylusPlugIns.Add(penRenderer);
             hitter = InkPresenter.Strokes.GetIncrementalStrokeHitTester(eraserTip);
-
+            
             StylusButtonDown += (s, e) => InvertLogic(e.Inverted, e);
             StylusEnter += (s, e) => InvertLogic(e.Inverted, e);
             StylusLeave += (s, e) => InvertLogic(e.Inverted, e);
