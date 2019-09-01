@@ -12,11 +12,11 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="_Open"/>
-                <MenuItem Header="_Close" Command="{Binding OpenClicked}" CommandParameter="{Binding}"/>
+                <MenuItem Header="_Close" Command="{Binding OpenClickedCommand}" CommandParameter="{Binding}"/>
                 <MenuItem Header="_Save" Click="MenuItem_Click"/>
             </MenuItem>
-            <MenuItem Header="Server">
-            </MenuItem>
+            <MenuItem Header="Server" Command="{Binding ChangeServerCommand}" CommandParameter="{Binding}"/>
+
         </Menu>
         <Grid>
             <ScrollViewer x:Name="DrawerScrollViewer" 

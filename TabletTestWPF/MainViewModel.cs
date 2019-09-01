@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -66,7 +67,8 @@ namespace TabletTestWPF
             set => SetProperty(ref drawingHeigth, value);
         }
 
-        public Action OpenClicked => ()=>OpenClickedExecuted(null,null);
+        public SimpleCommand OpenClickedCommand { get; private set; }
+        public SimpleCommand ChangeServerCommand { get; private set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
         private double penSize;
@@ -74,17 +76,22 @@ namespace TabletTestWPF
         private bool highlighterActive;
         private double drawingWidth;
         private double drawingHeigth;
+        private SignalRConnection con;
 
         public MainViewModel(SimpleStylus simpleStylus)
         {
             SimpleStylus = simpleStylus;
             simpleStylus.StrokeAdded += SimpleStylus_StrokeAdded;
             selectedColor = simpleStylus.CurrentAttributes.Color;
+            OpenClickedCommand = new SimpleCommand((o) => OpenClicked());
+            ChangeServerCommand = new SimpleCommand((o) => ChangeServer());
+            con = new SignalRConnection();
         }
+
 
         private void SimpleStylus_StrokeAdded(object sender, System.Windows.Ink.StrokeCollection e)
         {
-            var maxX = e.Max(x => x.StylusPoints.Max(y => y.X)); 
+            var maxX = e.Max(x => x.StylusPoints.Max(y => y.X));
             var maxY = e.Max(x => x.StylusPoints.Max(y => y.Y));
 
             if (DrawingHeigth < maxY)
@@ -135,14 +142,26 @@ namespace TabletTestWPF
             OnPropertyChanged(name);
         }
 
-        private void OpenClickedExecuted(object sender, ExecutedRoutedEventArgs e)
+        private void OpenClicked()
         {
 
         }
-
-        private void OpenClickedCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        private void ChangeServer()
         {
-            e.CanExecute = true;
+            var cs = new ChangeServerWindow();
+            cs.GiveRequiredData("URL:");
+            if (cs.ShowDialog() ?? false)
+            {
+                if (Uri.TryCreate(cs.Answer, UriKind.RelativeOrAbsolute, out var uri))
+                {
+                    if (!cs.Answer.Contains("http"))
+                        cs.Answer = "http://" + cs.Answer;
+                    con.ConnectToUrl(cs.Answer);
+                }
+                else
+                    MessageBox.Show("Error parsing url");
+            }
+
         }
     }
 }

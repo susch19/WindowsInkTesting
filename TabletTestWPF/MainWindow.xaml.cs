@@ -29,7 +29,6 @@ namespace TabletTestWPF
         private MainViewModel mainViewModel;
         public MainWindow()
         {
-            var con = new SignalRConnection();
             LockObject = new object();
             InitializeComponent();
 

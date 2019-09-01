@@ -17,7 +17,7 @@ namespace DrawingTabletServer
         private SemaphoreSlimExtended writeLock;
         public event EventHandler<List<(ActionType, byte[], byte[])>> DrawingChanged;
 
-        public DrawingManager() : this($"session_{Guid.NewGuid().ToString()}_{DateTime.Now.ToShortDateString()}.drf")
+        public DrawingManager() : this($"session_{Guid.NewGuid().ToString()}_{DateTime.Now.ToShortDateString().Replace('/', '_')}.drf")
         {
 
         }
@@ -58,6 +58,8 @@ namespace DrawingTabletServer
         {
             using (writeLock.Wait())
             {
+                if (!Directory.Exists("SavedDrawings"))
+                    Directory.CreateDirectory("SavedDrawings");
                 if (!File.Exists(sessionFileName))
                     File.Create(sessionFileName).Close();
 
@@ -85,7 +87,9 @@ namespace DrawingTabletServer
 
         public static IList<string> ExistingDrawings()
         {
-            return Directory.GetFiles("SavedDrawings").Select(x=>x.Split(Path.DirectorySeparatorChar).Last()).ToList();
+            if (Directory.Exists("SavedDrawings"))
+                return Directory.GetFiles("SavedDrawings").Select(x => x.Split(Path.DirectorySeparatorChar).Last()).ToList();
+            else return new List<string>();
         }
 
         public void ChangeDrawing(string fileName)

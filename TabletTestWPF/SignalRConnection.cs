@@ -16,16 +16,17 @@ namespace TabletTestWPF
     public class SignalRConnection
     {
         public static HubConnection Connection { get; set; }
-        public SignalRConnection() => DoStuff();
+        public static string URL { get; set; }
+        public SignalRConnection() => DoStuff("http://localhost:55332/");
 
-        private async void DoStuff()
+        private async void DoStuff(string url)
         {
             var dt = DateTime.Now;
 
+            URL = url;
             Connection = new HubConnectionBuilder()
-                .WithUrl("http://localhost:55332/")
+                .WithUrl(URL)
                 .Build();
-
             while (true)
             {
                 try
@@ -109,6 +110,12 @@ namespace TabletTestWPF
 
 
             //GetStrokeCollection
+        }
+
+        public void ConnectToUrl(string url)
+        {
+            Connection.StopAsync();
+            DoStuff(url);
         }
 
         private static void ChangeStrokeFromServer(byte[] strokes, byte[] changed, ActionType actionType)

@@ -61,10 +61,18 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ChangeServerWindow.xaml.cs">
+      <DependentUpon>ChangeServerWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ExtensionHelperMethods.cs" />
     <Compile Include="MainViewModel.cs" />
     <Compile Include="SignalRConnection.cs" />
+    <Compile Include="SimpleCommand.cs" />
     <Compile Include="SimpleStylus.cs" />
+    <Page Include="ChangeServerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
