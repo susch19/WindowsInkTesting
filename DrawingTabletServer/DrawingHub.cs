@@ -8,6 +8,13 @@ namespace DrawingTabletServer
 {
     internal class DrawingHub : Hub
     {
+        public DrawingHub()
+        {
+            Program.DrawingManager.DrawingChanged += DrawingManager_DrawingChanged;
+        }
+
+        private void DrawingManager_DrawingChanged(object sender, List<(ActionType, byte[], byte[])> e) => 
+            Clients.Others.SendAsync("DrawingChanged", e);
         public List<byte[]> GetLatestDrawing(DateTime time) => Program.DrawingManager.GetLatest(time);
 
         public List<byte[]> GetAllDrawing() => Program.DrawingManager.GetAll();

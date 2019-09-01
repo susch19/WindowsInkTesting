@@ -16,7 +16,18 @@ namespace DrawingTabletServer
 
         public static void Main(string[] args)
         {
-            DrawingManager = new DrawingManager();
+            var existing = DrawingManager.ExistingDrawings();
+
+            if (existing.Count > 0)
+            {
+                var res = ConsoleUi.CreateSelectionGridForArray("", existing.Concat(new string[] { "new" }), true);
+                if (existing.Contains(res))
+                    DrawingManager = new DrawingManager(res);
+                else
+                    DrawingManager = new DrawingManager();
+
+            }
+
             CreateWebHostBuilder(args).UseUrls("http://[::1]:55332", "http://0.0.0.0:55332").Build().Run();
         }
 

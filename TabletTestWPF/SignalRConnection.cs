@@ -53,6 +53,14 @@ namespace TabletTestWPF
                  ChangeStrokeFromServer(strokes, changed, actionType);
              }));
 
+            Connection.On("DrawingChanged", (Action<List<(ActionType, byte[], byte[])>>)((list) =>
+            {
+                MainViewModel.SimpleStylus.InkPresenter.Strokes.Clear();
+                foreach (var drawing in list)
+                    ChangeStrokeFromServer(drawing.Item2, drawing.Item3, drawing.Item1);
+            }));
+
+
             //var allDrawings = await Connection.InvokeAsync<List<byte[]>>("GetAllDrawing");
             //lock (MainWindow.LockObject)
             //    foreach (var drawing in allDrawings)

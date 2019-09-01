@@ -13,27 +13,25 @@ namespace DrawingTabletServer
         //public StrokeCollection StrokeCollection { get; private set; }
         public List<(ActionType, byte[], byte[])> StrokeHistory;
 
-        public (Guid Id, DateTime Time) CurrentSession { get; set; }
-        private readonly string sessionFileName;
+        private string sessionFileName;
         private SemaphoreSlimExtended writeLock;
+        public event EventHandler<List<(ActionType, byte[], byte[])>> DrawingChanged;
 
-        public DrawingManager()
+        public DrawingManager() : this($"session_{Guid.NewGuid().ToString()}_{DateTime.Now.ToShortDateString()}.drf")
         {
-            CurrentSession = (new Guid(), DateTime.Now);
+
+        }
+
+        public DrawingManager(string drawing)
+        {
             Strokes = new List<StrokeAndTime>();
             writeLock = new SemaphoreSlimExtended(1, 1);
-            sessionFileName = $"session_{CurrentSession.Id.ToString()}_{CurrentSession.Time.ToShortDateString()}.drf";
+            sessionFileName = Path.Combine("SavedDrawings", drawing);
+            if (!Directory.Exists("SavedDrawings"))
+                Directory.CreateDirectory("SavedDrawings");
             StrokeHistory = new List<(ActionType, byte[], byte[])>();
 
-            if (File.Exists(sessionFileName))
-                using (var fs = new FileStream(sessionFileName, FileMode.Open))
-                using (var br = new BinaryReader(fs))
-                {
-                    while (br.BaseStream.Position < br.BaseStream.Length)
-                    {
-                        StrokeHistory.Add(((ActionType)br.ReadInt32(), br.ReadBytes(br.ReadInt32()), br.ReadBytes(br.ReadInt32())));
-                    }
-                }
+            ReadIntoStrokeHistory(sessionFileName);
         }
 
         internal List<byte[]> GetLatest(DateTime time) => Strokes.Where(x => x.DateTime > time).Select(x => x.Stroke).ToList();
@@ -42,11 +40,7 @@ namespace DrawingTabletServer
 
         internal void StoreNewest(byte[] drawings, DateTime dateTime)
         {
-            if (!File.Exists(sessionFileName))
-                File.Create(sessionFileName);
-
             var stroke = new StrokeAndTime { Stroke = drawings, DateTime = dateTime };
-
 
             Strokes.Add(stroke);
             StoreNewStroke(drawings);
@@ -65,7 +59,7 @@ namespace DrawingTabletServer
             using (writeLock.Wait())
             {
                 if (!File.Exists(sessionFileName))
-                    File.Create(sessionFileName);
+                    File.Create(sessionFileName).Close();
 
                 using (var fs = new FileStream(sessionFileName, FileMode.Append))
                 using (var bw = new BinaryWriter(fs))
@@ -88,5 +82,28 @@ namespace DrawingTabletServer
             //    return ms.ToArray();
             //}
             StrokeHistory;
+
+        public static IList<string> ExistingDrawings()
+        {
+            return Directory.GetFiles("SavedDrawings").Select(x=>x.Split(Path.DirectorySeparatorChar).Last()).ToList();
+        }
+
+        public void ChangeDrawing(string fileName)
+        {
+            sessionFileName = Path.Combine("SavedDrawings", fileName);
+            ReadIntoStrokeHistory(sessionFileName);
+        }
+
+        private void ReadIntoStrokeHistory(string path)
+        {
+            StrokeHistory.Clear();
+
+            if (File.Exists(path))
+                using (var fs = new FileStream(path, FileMode.Open))
+                using (var br = new BinaryReader(fs))
+                    while (br.BaseStream.Position < br.BaseStream.Length)
+                        StrokeHistory.Add(((ActionType)br.ReadInt32(), br.ReadBytes(br.ReadInt32()), br.ReadBytes(br.ReadInt32())));
+            DrawingChanged?.Invoke(this, StrokeHistory);
+        }
     }
 }
